@@ -16,10 +16,10 @@ public class Player1 {
 	private Dice[] currentRoll = new Dice[5];
 	private int numRolls = 0;
 	Scanner scan;
-	ObjectOutputStream oos = null;
-	ObjectInputStream ois = null;
 	InetAddress host = InetAddress.getLocalHost();
 	Socket socket = new Socket(host.getHostName(), 9876);
+	ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+	ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
 
 	public ScoreSheet myScoreSheet;
 
@@ -57,13 +57,6 @@ public class Player1 {
 
 	public void consoleGUI() throws IOException, ClassNotFoundException {
 
-		// write to socket using ObjectOutputStream
-		oos = new ObjectOutputStream(socket.getOutputStream());
-		System.out.println("Sending request to Socket Server, Ready to play!!");
-		YahtzeeMessage testMessage = new YahtzeeMessage("player1", new int[] { 1, 2, 3 });
-		oos.writeObject(testMessage);
-		ois = new ObjectInputStream(socket.getInputStream());
-
 		waitaForServer(socket);
 //		oos.close();
 //		ois.close();
@@ -86,10 +79,9 @@ public class Player1 {
 
 	private void waitaForServer(Socket socket) throws IOException, ClassNotFoundException {
 		while (true) {
-			YahtzeeMessage message = (YahtzeeMessage) ois.readObject();
-			if (message.getType().equalsIgnoreCase("player1"))
+			YahzeeGameState message = (YahzeeGameState) ois.readObject();
+			if (message.getCurrentPlayer().equalsIgnoreCase("player1"))
 				break;
-
 		}
 	}
 
@@ -122,7 +114,8 @@ public class Player1 {
 //			oos.reset();
 //			ois.reset();
 //			oos = new ObjectOutputStream(socket.getOutputStream());
-			YahtzeeMessage testMessage = new YahtzeeMessage("player1", new int[] { 1, 2, 3 });
+			System.out.println("Sending game state!");
+			YahzeeGameState testMessage = new YahzeeGameState("player1", this.myScoreSheet, null, null);
 			oos.writeObject(testMessage);
 			waitaForServer(socket);
 
